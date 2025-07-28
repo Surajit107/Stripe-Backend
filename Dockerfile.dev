@@ -10,8 +10,8 @@ COPY package*.json ./
 # Install all dependencies (including dev dependencies for development)
 RUN npm ci
 
-# Copy source code
-COPY . .
+# Create src directory for volume mounting
+RUN mkdir -p src
 
 # Expose port 5000
 EXPOSE 5000
