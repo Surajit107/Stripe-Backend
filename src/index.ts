@@ -20,7 +20,19 @@ connectToDataBase();
 
 const app = express();
 
-app.use(cors());
+// Enhanced CORS configuration for Docker environment
+app.use(cors({
+    origin: [
+        'http://localhost:3000',
+        'http://localhost:3001',
+        'http://client:3000',
+        'http://stripe-payment-client:3000'
+    ],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token']
+}));
+
 app.use(express.static(__dirname + '/public'));
 app.use(morgan('dev'));
 
