@@ -157,7 +157,7 @@ export const PaymentSuccess = async (req: CustomRequest, res: Response): Promise
                 }
             );
 
-            return res.status(200).json({ success: true, message: "Subscription updated for unpaid session", data: [] });
+            return res.status(200).json({ success: true, message: "Subscription updated for unpaid session" });
         } else {
             return res.status(400).json({ success: false, message: "Invalid payment status" });
         }

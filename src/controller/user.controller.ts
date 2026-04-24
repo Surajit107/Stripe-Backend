@@ -111,16 +111,15 @@ export const requestRefund = async (req: CustomRequest, res: Response): Promise<
     try {
         const decodedToken = req.decoded_token as DecodedToken;
         const userId = decodedToken._id;
-        
-        
+
         const user = await findUserById(userId);
-        
+
         if (!user || !user.subscription.subscriptionId) {
             return res.status(404).json({ message: 'User or subscription not found' });
         };
-        
+
         const subscriptionId = user.subscription.subscriptionId;
-        
+
         // Get the latest invoice for the subscription
         const invoices = await stripe.invoices.list({
             subscription: subscriptionId,
@@ -146,7 +145,7 @@ export const requestRefund = async (req: CustomRequest, res: Response): Promise<
         return res.status(200).json({
             success: true,
             message: 'Refund processed successfully',
-            data: refund,
+            refund,
         });
     } catch (exc: any) {
         if (exc instanceof Stripe.errors.StripeError) {

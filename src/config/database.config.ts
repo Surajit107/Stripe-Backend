@@ -13,7 +13,7 @@ interface DBInfo {
 const connectToDataBase = async (): Promise<void> => {
     try {
         console.log("Trying to connect to DB...");
-        await mongoose.connect(`${process.env.DB_CONNECTION}${process.env.COLECTION_NAME}` as string);
+        await mongoose.connect(process.env.DB_CONNECTION as string);
 
         // Get the current date and time
         const currentDate = new Date().toLocaleString();

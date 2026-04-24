@@ -1,16 +1,18 @@
 import Redis from 'ioredis';
-import { REDIS_HOST, REDIS_PORT } from './redis.config';
+import { REDIS_ENABLED, REDIS_HOST, REDIS_PORT } from './redis.config';
 
-const redisClient = new Redis({
-    port: REDIS_PORT,
-    host: REDIS_HOST,
-});
+const redisClient: Redis | null = REDIS_ENABLED
+    ? new Redis({
+        port: REDIS_PORT,
+        host: REDIS_HOST,
+      })
+    : null;
 
-redisClient.on('connect', () => {
+redisClient?.on('connect', () => {
     console.log(`Connected to Redis: ${redisClient.options.host}:${redisClient.options.port}`);
 });
 
-redisClient.on('error', (err: Error) => {
+redisClient?.on('error', (err: Error) => {
     console.error('Redis error:', err);
 });
 

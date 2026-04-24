@@ -20,19 +20,19 @@ connectToDataBase();
 
 const app = express();
 
-// Enhanced CORS configuration for Docker environment
-app.use(cors({
-    origin: [
-        'http://localhost:3000',
-        'http://localhost:3001',
-        'http://client:3000',
-        'http://stripe-payment-client:3000'
-    ],
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token']
-}));
-
+app.use(
+    cors({
+        origin: true,
+        credentials: true,
+        allowedHeaders: [
+            "Content-Type",
+            "Authorization",
+            "X-Access-Token",
+            "x-access-token",
+            "ngrok-skip-browser-warning",
+        ],
+    }),
+);
 app.use(express.static(__dirname + '/public'));
 app.use(morgan('dev'));
 
@@ -94,7 +94,7 @@ app.get('/health', (req: Request, res: Response) => {
 });
 
 app.get('/server/check', (req: Request, res: Response) => {
-    res.send("Hi!...I am server, Happy to see you boss...");
+    res.send("Stripe Testing API — server is running.");
 });
 
 // Internal server error handling middleware
@@ -115,9 +115,9 @@ app.use((req: Request, res: Response, next: NextFunction) => {
     });
 });
 
-const PORT = process.env.PORT || 5500;
+const PORT = process.env.PORT || 5000;
 const HOST = `${process.env.HOST}:${PORT}` || `http://localhost:${PORT}`;
 
 server.listen(PORT, () => {
-    console.log(`Server Connected On Port ${HOST}`);
+    console.log(`[Stripe Testing] API listening on ${HOST}`);
 });

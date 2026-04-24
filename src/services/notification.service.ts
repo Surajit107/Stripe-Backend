@@ -3,22 +3,31 @@ import redisClient from '../config/redis';
 import UserModel from '../model/user.model';
 import { SendEmail } from '../helpers/sendEmail';
 import { ReminderJobData } from '../../types/types';
+import { REDIS_ENABLED, REDIS_HOST, REDIS_PORT } from '../config/redis.config';
+import { Types } from 'mongoose';
 
-const reminderQueue = new Queue<ReminderJobData>('reminder', {
-    redis: {
-        port: 6379,
-        host: '127.0.0.1',
-    },
-});
+const reminderQueue: Queue.Queue<ReminderJobData> | null = REDIS_ENABLED
+    ? new Queue<ReminderJobData>('reminder', {
+        redis: {
+          port: REDIS_PORT,
+          host: REDIS_HOST,
+        },
+      })
+    : null;
 
-reminderQueue.process(async (job) => {
-    const { userId, subscriptionEndDate } = job.data;
-    await sendReminder(userId, subscriptionEndDate);
+reminderQueue?.process(async (job) => {
+  const { userId, subscriptionEndDate } = job.data;
+  await sendReminder(userId, subscriptionEndDate);
 });
 
 // scheduleReminder
 export const scheduleReminder = async (userEmail: string, subscriptionEndDate: Date): Promise<void> => {
     try {
+        if (!reminderQueue) {
+            // Redis/Bull disabled: skip scheduling to avoid crashing dev startup.
+            return;
+        }
+
         const user = await UserModel.findOne({ email: userEmail }).exec();
 
         if (!user) {
@@ -26,7 +35,7 @@ export const scheduleReminder = async (userEmail: string, subscriptionEndDate: D
             return;
         }
 
-        const userId: any = user._id;
+        const userId: Types.ObjectId = user._id;
         const reminderDate = new Date(subscriptionEndDate);
         reminderDate.setDate(reminderDate.getDate() - 3); // 3 days before subscription ends
 
@@ -37,7 +46,7 @@ export const scheduleReminder = async (userEmail: string, subscriptionEndDate: D
 
         // Store the reminder schedule in Redis
         const reminderKey = `reminder:${userId}`;
-        redisClient.set(reminderKey, subscriptionEndDate.toISOString());
+        await redisClient?.set(reminderKey, subscriptionEndDate.toISOString());
     } catch (error) {
         console.error('Error fetching user details:', error);
     }
@@ -58,7 +67,7 @@ export const sendReminder = async (userId: string, subscriptionEndDate: Date): P
 
             // Optionally, remove the reminder key from Redis after sending the reminder
             const reminderKey = `reminder:${userId}`;
-            redisClient.del(reminderKey);
+            await redisClient?.del(reminderKey);
         } else {
             console.error(`User not found or email not available for user ID: ${userId}`);
         }
